@@ -1,5 +1,6 @@
 import asyncio
 import curses
+import nntplib
 import time
 
 
@@ -58,16 +59,15 @@ def draw(canvas):
         blinking_fives,
     ]
     while True:
-        for courutine in courutines.copy():
-            courutine.send(None)
-            canvas.border()
-            curses.curs_set(False)
-            canvas.refresh()
-            time.sleep(2)
-
-
+        blinking_first.send(None)
+        blinking_second.send(None)
+        blinking_third.send(None)
+        blinking_fourth.send(None)
+        blinking_fives.send(None)
+        canvas.border()
+        curses.curs_set(False)
+        canvas.refresh()
+        time.sleep(2)
 
 curses.update_lines_cols()
 curses.wrapper(draw)
-    
-
