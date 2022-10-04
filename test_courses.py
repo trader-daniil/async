@@ -59,15 +59,13 @@ def draw(canvas):
         blinking_fives,
     ]
     while True:
-        blinking_first.send(None)
-        blinking_second.send(None)
-        blinking_third.send(None)
-        blinking_fourth.send(None)
-        blinking_fives.send(None)
+        for courutine in courutines:
+            courutine.send(None)
         canvas.border()
         curses.curs_set(False)
         canvas.refresh()
-        time.sleep(2)
+        time.sleep(0.5)
+
 
 curses.update_lines_cols()
 curses.wrapper(draw)
