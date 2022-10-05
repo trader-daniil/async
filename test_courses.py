@@ -1,7 +1,18 @@
 import asyncio
 import curses
-import nntplib
 import time
+
+
+class EventLoopCommand():
+
+    def __await__(self):
+        return (yield self)
+
+
+class Sleep(EventLoopCommand):
+
+    def __init__(self, seconds):
+        self.seconds = seconds
 
 
 async def blink(canvas, row, column, symbol='*'):
@@ -10,16 +21,16 @@ async def blink(canvas, row, column, symbol='*'):
     """
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        await asyncio.sleep(0)
+        await Sleep(2)
 
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        await Sleep(0.3)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        await asyncio.sleep(0)
+        await Sleep(0.5)
 
         canvas.addstr(row, column, symbol)
-        await asyncio.sleep(0)
+        await Sleep(0.3)
 
 
 def draw(canvas):
@@ -64,7 +75,7 @@ def draw(canvas):
         canvas.border()
         curses.curs_set(False)
         canvas.refresh()
-        time.sleep(0.5)
+        time.sleep(1)
 
 
 curses.update_lines_cols()
