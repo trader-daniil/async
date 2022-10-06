@@ -1,6 +1,17 @@
 import asyncio
 import curses
 import time
+import random
+from more_itertools import chunked
+
+
+STARS = (
+    '*',
+    '+',
+    '.',
+    ':',
+)
+STARS_AMOUNT = 20
 
 
 class EventLoopCommand():
@@ -36,46 +47,33 @@ async def blink(canvas, row, column, symbol='*'):
 def draw(canvas):
     """
     Рисует получая данные от корутины.
-    """
-    blinking_first = blink(
-        canvas=canvas,
-        row=5,
-        column=20,
-    )
-    blinking_second = blink(
-        canvas=canvas,
-        row=5,
-        column=22,
-    )
-    blinking_third = blink(
-        canvas=canvas,
-        row=5,
-        column=24,
-    )
-    blinking_fourth = blink(
-        canvas=canvas,
-        row=5,
-        column=26,
-    )
-    blinking_fives = blink(
-        canvas=canvas,
-        row=5,
-        column=28,
-    )
-    courutines = [
-        blinking_first,
-        blinking_second,
-        blinking_third,
-        blinking_fourth,
-        blinking_fives,
-    ]
+    """    
+    row, column = canvas.getmaxyx()
+
+    courutines = []
+    for _ in range(STARS_AMOUNT):
+        courutines.append(
+            blink(
+                canvas=canvas,
+                row=random.randint(1, row-1),
+                column=random.randint(1, column-1),
+                symbol=random.choice(STARS),    
+            ),
+        )
+    for courutine in courutines:
+        courutine.send(None)
+    canvas.border()
+    curses.curs_set(False)
+    canvas.refresh()
+    star_queues = list(chunked(courutines, 10))
     while True:
-        for courutine in courutines:
-            courutine.send(None)
-        canvas.border()
-        curses.curs_set(False)
-        canvas.refresh()
-        time.sleep(1)
+        for queue in star_queues:
+            for courutine in queue:
+                courutine.send(None)
+            canvas.border()
+            curses.curs_set(False)
+            canvas.refresh()
+            time.sleep(0.1)
 
 
 curses.update_lines_cols()
