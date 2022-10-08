@@ -12,6 +12,15 @@ STARS = (
     ':',
 )
 STARS_AMOUNT = 300
+SPACE_KEY_CODE = 32
+#LEFT_KEY_CODE = 260
+LEFT_KEY_CODE = 452
+#RIGHT_KEY_CODE = 261
+RIGHT_KEY_CODE = 454
+#UP_KEY_CODE = 259
+UP_KEY_CODE = 450
+#DOWN_KEY_CODE = 258
+DOWN_KEY_CODE = 456
 
 
 class EventLoopCommand():
@@ -24,6 +33,37 @@ class Sleep(EventLoopCommand):
 
     def __init__(self, seconds):
         self.seconds = seconds
+
+
+def read_controls(canvas):
+    """Read keys pressed and returns tuple witl controls state."""
+    
+    rows_direction = columns_direction = 0
+    space_pressed = False
+
+    while True:
+        pressed_key_code = canvas.getch()
+
+        if pressed_key_code == -1:
+            # https://docs.python.org/3/library/curses.html#curses.window.getch
+            break
+
+        if pressed_key_code == UP_KEY_CODE:
+            rows_direction = -10
+
+        if pressed_key_code == DOWN_KEY_CODE:
+            rows_direction = 10
+
+        if pressed_key_code == RIGHT_KEY_CODE:
+            columns_direction = 10
+
+        if pressed_key_code == LEFT_KEY_CODE:
+            columns_direction = -10
+
+        if pressed_key_code == SPACE_KEY_CODE:
+            space_pressed = True
+    
+    return rows_direction, columns_direction, space_pressed
 
 
 async def blink(canvas, row, column, symbol='*'):
@@ -145,13 +185,14 @@ def draw(canvas):
     """
     Рисует получая данные от корутины.
     """
-      
+
     row, column = canvas.getmaxyx()
     
     with open('rocket_frame_1.txt') as f:
         rocket_1 = f.read()
     with open('rocket_frame_2.txt') as f:
         rocket_2 = f.read()
+
     spaceship = animate_spaceship(
         canvas=canvas,
         row=row//2,
@@ -159,7 +200,7 @@ def draw(canvas):
         rocket_1=rocket_1,
         rocket_2=rocket_2,
     )
-    
+
     courutines = []
     for _ in range(STARS_AMOUNT):
         courutines.append(
@@ -170,8 +211,9 @@ def draw(canvas):
                 symbol=random.choice(STARS),    
             ),
         )
-    shot = fire(canvas, start_row=row//2, start_column=column//2, rows_speed=-0.3, columns_speed=0)
+    #shot = fire(canvas, start_row=row//2, start_column=column//2, rows_speed=-0.3, columns_speed=0)
     #анимация выстрела
+    """
     while True:
         try:
             shot.send(None)
@@ -182,6 +224,7 @@ def draw(canvas):
         except StopIteration:
             break
     #анимация звездного неба
+    """
     star_queues = list(chunked(courutines, 10))
     while True:
         for queue in star_queues:
@@ -189,10 +232,29 @@ def draw(canvas):
                 courutine.send(None)
             spaceship.send(None)
             canvas.refresh()
-            time.sleep(0.1)
+            time.sleep(0.2)
             spaceship.send(None)
-        
+            canvas.refresh()
+            # получение ввода пользователя
+            canvas.nodelay(True)
+            row_change, column_change, _ = read_controls(canvas=canvas)
+            row += row_change
+            column += column_change
+            # отображение новых координат корабля
+            spaceship = animate_spaceship(
+                canvas=canvas,
+                row=row//2,
+                column=column//2,
+                rocket_1=rocket_1,
+                rocket_2=rocket_2,
+            )
+            spaceship.send(None)
+            canvas.refresh()
+            time.sleep(0.2)
+            spaceship.send(None)
+            canvas.refresh()
+
+    
 
 curses.update_lines_cols()
 curses.wrapper(draw)
-

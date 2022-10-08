@@ -1,5 +1,6 @@
 import asyncio
 import curses
+from os import read
 import time
 import random
 from more_itertools import chunked
@@ -11,112 +12,62 @@ STARS = (
     '.',
     ':',
 )
-STARS_AMOUNT = 200
+STARS_AMOUNT = 300
+SPACE_KEY_CODE = 32
+#LEFT_KEY_CODE = 260
+LEFT_KEY_CODE = 452
+#RIGHT_KEY_CODE = 261
+RIGHT_KEY_CODE = 454
+#UP_KEY_CODE = 259
+UP_KEY_CODE = 450
+#DOWN_KEY_CODE = 258
+DOWN_KEY_CODE = 456
 
 
-class EventLoopCommand():
+def read_controls(canvas):
+    """Read keys pressed and returns tuple witl controls state."""
+    
+    rows_direction = columns_direction = 0
+    space_pressed = False
 
-    def __await__(self):
-        return (yield self)
-
-
-class Sleep(EventLoopCommand):
-
-    def __init__(self, seconds):
-        self.seconds = seconds
-
-
-async def blink(canvas, row, column, symbol='*'):
-    """
-    Возвращает данные для отрисовки.
-    """
     while True:
-        canvas.addstr(row, column, symbol, curses.A_DIM)
-        await Sleep(2)
+        pressed_key_code = canvas.getch()
 
-        canvas.addstr(row, column, symbol)
-        await Sleep(0.3)
+        if pressed_key_code == -1:
+            # https://docs.python.org/3/library/curses.html#curses.window.getch
+            break
 
-        canvas.addstr(row, column, symbol, curses.A_BOLD)
-        await Sleep(0.5)
+        if pressed_key_code == UP_KEY_CODE:
+            rows_direction = -1
 
-        canvas.addstr(row, column, symbol)
-        await Sleep(0.3)
+        if pressed_key_code == DOWN_KEY_CODE:
+            rows_direction = 1
 
+        if pressed_key_code == RIGHT_KEY_CODE:
+            columns_direction = 1
 
-import asyncio
-import curses
+        if pressed_key_code == LEFT_KEY_CODE:
+            columns_direction = -1
 
+        if pressed_key_code == SPACE_KEY_CODE:
+            space_pressed = True
+    
+    return rows_direction, columns_direction, space_pressed
 
-async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
-    """Display animation of gun shot, direction and speed can be specified."""
-
-    row, column = start_row, start_column
-
-    canvas.addstr(round(row), round(column), '*')
-    await asyncio.sleep(0)
-
-    canvas.addstr(round(row), round(column), 'O')
-    await asyncio.sleep(0)
-    canvas.addstr(round(row), round(column), ' ')
-
-    row += rows_speed
-    column += columns_speed
-
-    symbol = '-' if columns_speed else '|'
-
-    rows, columns = canvas.getmaxyx()
-    max_row, max_column = rows - 1, columns - 1
-
-    curses.beep()
-
-    while 0 < row < max_row and 0 < column < max_column:
-        canvas.addstr(round(row), round(column), symbol)
-        await asyncio.sleep(0)
-        canvas.addstr(round(row), round(column), ' ')
-        row += rows_speed
-        column += columns_speed
 
 def draw(canvas):
     """
-    Рисует получая данные от корутины.
-    """    
-    row, column = canvas.getmaxyx()
-    courutine = fire(canvas, start_row=row//2, start_column=column//2, rows_speed=-0.3, columns_speed=0)
-    while True:
-        try:
-            courutine.send(None)
-            canvas.border()
-            curses.curs_set(False)
-            canvas.refresh()
-            time.sleep(0.1)
-        except StopIteration:
-            break
-    courutines = []
-    for _ in range(STARS_AMOUNT):
-        courutines.append(
-            blink(
-                canvas=canvas,
-                row=random.randint(1, row-1),
-                column=random.randint(1, column-1),
-                symbol=random.choice(STARS),    
-            ),
-        )
-    for courutine in courutines:
-        courutine.send(None)
-    canvas.border()
-    curses.curs_set(False)
-    canvas.refresh()
-    star_queues = list(chunked(courutines, 10))
-    while True:
-        for queue in star_queues:
-            for courutine in queue:
-                courutine.send(None)
-            canvas.border()
-            curses.curs_set(False)
-            canvas.refresh()
-            time.sleep(0.1)
+    canvas.nodelay(True)
+    time.sleep(2)
+    #char = canvas.getch()
+    char = read_controls(canvas=canvas)
+    print(f'You pressed {char}')
+    """
+
+
+
 
 
 curses.update_lines_cols()
 curses.wrapper(draw)
+
