@@ -27,4 +27,6 @@ python star_sky_animation.py
 
 ### Используемые технологии 
 
-Для написания асинхронного кода используется библиотека asyncio
+Для написания асинхронного кода используется библиотека [asyncio](https://docs.python.org/3/library/asyncio.html)
+
+Для создания изображения использовалась библиотека [curses](https://docs.python.org/3/howto/curses.html)
