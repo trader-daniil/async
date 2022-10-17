@@ -13,14 +13,12 @@ STARS = (
 )
 STARS_AMOUNT = 300
 SPACE_KEY_CODE = 32
-#LEFT_KEY_CODE = 260
 LEFT_KEY_CODE = 452
-#RIGHT_KEY_CODE = 261
 RIGHT_KEY_CODE = 454
-#UP_KEY_CODE = 259
 UP_KEY_CODE = 450
-#DOWN_KEY_CODE = 258
 DOWN_KEY_CODE = 456
+HORIZONTAL_MOVE = 5
+VERICAL_MOVE = 5
 
 
 class EventLoopCommand():
@@ -49,16 +47,16 @@ def read_controls(canvas):
             break
 
         if pressed_key_code == UP_KEY_CODE:
-            rows_direction = -10
+            rows_direction = -VERICAL_MOVE
 
         if pressed_key_code == DOWN_KEY_CODE:
-            rows_direction = 10
+            rows_direction = VERICAL_MOVE
 
         if pressed_key_code == RIGHT_KEY_CODE:
-            columns_direction = 10
+            columns_direction = HORIZONTAL_MOVE
 
         if pressed_key_code == LEFT_KEY_CODE:
-            columns_direction = -10
+            columns_direction = -HORIZONTAL_MOVE
 
         if pressed_key_code == SPACE_KEY_CODE:
             space_pressed = True
@@ -186,7 +184,7 @@ def draw(canvas):
     Рисует получая данные от корутины.
     """
 
-    row, column = canvas.getmaxyx()
+    canvas_row, canvas_column = canvas.getmaxyx()
     
     with open('rocket_frame_1.txt') as f:
         rocket_1 = f.read()
@@ -195,8 +193,8 @@ def draw(canvas):
 
     spaceship = animate_spaceship(
         canvas=canvas,
-        row=row//2,
-        column=column//2,
+        row=canvas_row//2,
+        column=canvas_column//2,
         rocket_1=rocket_1,
         rocket_2=rocket_2,
     )
@@ -206,13 +204,13 @@ def draw(canvas):
         courutines.append(
             blink(
                 canvas=canvas,
-                row=random.randint(1, row-1),
-                column=random.randint(1, column-1),
+                row=random.randint(1, canvas_row-1),
+                column=random.randint(1, canvas_column-1),
                 symbol=random.choice(STARS),    
             ),
         )
     #shot = fire(canvas, start_row=row//2, start_column=column//2, rows_speed=-0.3, columns_speed=0)
-    #анимация выстрела
+    # анимация выстрела
     """
     while True:
         try:
@@ -223,13 +221,16 @@ def draw(canvas):
             time.sleep(0.05)
         except StopIteration:
             break
-    #анимация звездного неба
     """
+    # создаем анимацию звезд и корабля
     star_queues = list(chunked(courutines, 10))
+    spaceship_row = canvas_row // 2
+    spaceship_column = canvas_column // 2
     while True:
         for queue in star_queues:
             for courutine in queue:
                 courutine.send(None)
+            canvas.border()
             spaceship.send(None)
             canvas.refresh()
             time.sleep(0.2)
@@ -238,13 +239,23 @@ def draw(canvas):
             # получение ввода пользователя
             canvas.nodelay(True)
             row_change, column_change, _ = read_controls(canvas=canvas)
-            row += row_change
-            column += column_change
-            # отображение новых координат корабля
+
+            if (spaceship_row + row_change <= 0 or
+                 spaceship_row + row_change >= canvas_row - 2 * VERICAL_MOVE):
+                continue
+            else:
+                spaceship_row += row_change
+
+            if (spaceship_column + column_change <= 0 or
+                spaceship_column + column_change >= canvas_column - HORIZONTAL_MOVE):
+                continue
+            else:
+                spaceship_column += column_change
+
             spaceship = animate_spaceship(
                 canvas=canvas,
-                row=row//2,
-                column=column//2,
+                row=spaceship_row,
+                column=spaceship_column,
                 rocket_1=rocket_1,
                 rocket_2=rocket_2,
             )
@@ -254,7 +265,6 @@ def draw(canvas):
             spaceship.send(None)
             canvas.refresh()
 
-    
-
-curses.update_lines_cols()
-curses.wrapper(draw)
+if __name__ == '__main__':
+    curses.update_lines_cols()
+    curses.wrapper(draw)
