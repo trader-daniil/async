@@ -60,22 +60,25 @@ def read_controls(canvas):
     return rows_direction, columns_direction, space_pressed
 
 
+
 async def blink(canvas, row, column, symbol='*'):
-    """
-    Возвращает данные для отрисовки.
-    """
     while True:
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        await Sleep(2)
+        for _ in range(20000):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        await Sleep(0.3)
+        for _ in range(3000):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        await Sleep(0.5)
+        for _ in range(5000):
+            await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol)
-        await Sleep(0.3)
+        for _ in range(3000):
+            await asyncio.sleep(0)
+
 
 
 async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0):
@@ -226,7 +229,7 @@ def draw(canvas):
             break
     """
     # создаем анимацию звезд и корабля
-    
+
     star_queues = list(chunked(courutines, 10))
     while True:
         for queue in star_queues:
@@ -238,6 +241,7 @@ def draw(canvas):
             time.sleep(0.5)
             spaceship.send(None)
             canvas.refresh()
+
 
 
 if __name__ == '__main__':
