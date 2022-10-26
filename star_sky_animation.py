@@ -2,15 +2,11 @@ import asyncio
 import curses
 import time
 import random
+from itertools import cycle
 from more_itertools import chunked
 
 
-STARS = (
-    '*',
-    '+',
-    '.',
-    ':',
-)
+STARS = '*+.:'
 STARS_AMOUNT = 300
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 452
@@ -147,23 +143,12 @@ async def animate_spaceship(canvas, row, column, rocket_1, rocket_2):
     Отрисовывает корабль.
     """
     canvas_row, canvas_column = canvas.getmaxyx()
-    while True:
-        draw_frame(
-            canvas=canvas,
-            start_row=row,
-            start_column=column,
-            text=rocket_1,
-        ) 
-        await Sleep(0.5)
-        draw_frame(
-            canvas=canvas,
-            start_row=row,
-            start_column=column,
-            text=rocket_1,
-            negative=True,
-        ) 
-        await Sleep(0.5)
 
+    rockets = (
+        rocket_1,
+        rocket_2,
+    )
+    for rocket in cycle(rockets):
         canvas.nodelay(True)
         row_change, column_change, _ = read_controls(canvas=canvas)
 
@@ -182,18 +167,18 @@ async def animate_spaceship(canvas, row, column, rocket_1, rocket_2):
             canvas=canvas,
             start_row=row,
             start_column=column,
-            text=rocket_2,
-        )
-        await Sleep(0.5)
+            text=rocket,
+        ) 
+        await Sleep(1)
         draw_frame(
             canvas=canvas,
             start_row=row,
             start_column=column,
-            text=rocket_2,
+            text=rocket,
             negative=True,
-        )
+        ) 
         await Sleep(0.5)
-
+    
 
 def draw(canvas):
     """
@@ -214,7 +199,7 @@ def draw(canvas):
         rocket_1=rocket_1,
         rocket_2=rocket_2,
     )
- 
+    
     courutines = []
     for _ in range(STARS_AMOUNT):
         courutines.append(
@@ -250,15 +235,10 @@ def draw(canvas):
             canvas.border()
             spaceship.send(None)
             canvas.refresh()
-            time.sleep(0.1)
+            time.sleep(0.5)
             spaceship.send(None)
             canvas.refresh()
-            spaceship.send(None)
-            canvas.refresh()
-            time.sleep(0.1)
-            spaceship.send(None)
-            canvas.refresh()
-    
+
 
 if __name__ == '__main__':
     curses.update_lines_cols()
