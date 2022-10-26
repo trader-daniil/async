@@ -146,6 +146,7 @@ async def animate_spaceship(canvas, row, column, rocket_1, rocket_2):
     """
     Отрисовывает корабль.
     """
+    canvas_row, canvas_column = canvas.getmaxyx()
     while True:
         draw_frame(
             canvas=canvas,
@@ -162,6 +163,21 @@ async def animate_spaceship(canvas, row, column, rocket_1, rocket_2):
             negative=True,
         ) 
         await Sleep(0.5)
+
+        canvas.nodelay(True)
+        row_change, column_change, _ = read_controls(canvas=canvas)
+
+        if (row + row_change <= 0 or
+            row + row_change >= canvas_row - 2 * VERICAL_MOVE):
+                continue
+        else:
+            row += row_change
+
+        if (column + column_change <= 0 or
+                column + column_change >= canvas_column - HORIZONTAL_MOVE):
+                continue
+        else:
+            column += column_change
         draw_frame(
             canvas=canvas,
             start_row=row,
@@ -198,7 +214,7 @@ def draw(canvas):
         rocket_1=rocket_1,
         rocket_2=rocket_2,
     )
-
+ 
     courutines = []
     for _ in range(STARS_AMOUNT):
         courutines.append(
@@ -209,6 +225,8 @@ def draw(canvas):
                 symbol=random.choice(STARS),    
             ),
         )
+   
+
     #shot = fire(canvas, start_row=row//2, start_column=column//2, rows_speed=-0.3, columns_speed=0)
     # анимация выстрела
     """
@@ -223,9 +241,8 @@ def draw(canvas):
             break
     """
     # создаем анимацию звезд и корабля
+    
     star_queues = list(chunked(courutines, 10))
-    spaceship_row = canvas_row // 2
-    spaceship_column = canvas_column // 2
     while True:
         for queue in star_queues:
             for courutine in queue:
@@ -233,37 +250,15 @@ def draw(canvas):
             canvas.border()
             spaceship.send(None)
             canvas.refresh()
-            time.sleep(0.2)
+            time.sleep(0.1)
             spaceship.send(None)
             canvas.refresh()
-            # получение ввода пользователя
-            canvas.nodelay(True)
-            row_change, column_change, _ = read_controls(canvas=canvas)
-
-            if (spaceship_row + row_change <= 0 or
-                 spaceship_row + row_change >= canvas_row - 2 * VERICAL_MOVE):
-                continue
-            else:
-                spaceship_row += row_change
-
-            if (spaceship_column + column_change <= 0 or
-                spaceship_column + column_change >= canvas_column - HORIZONTAL_MOVE):
-                continue
-            else:
-                spaceship_column += column_change
-
-            spaceship = animate_spaceship(
-                canvas=canvas,
-                row=spaceship_row,
-                column=spaceship_column,
-                rocket_1=rocket_1,
-                rocket_2=rocket_2,
-            )
             spaceship.send(None)
             canvas.refresh()
-            time.sleep(0.2)
+            time.sleep(0.1)
             spaceship.send(None)
             canvas.refresh()
+    
 
 if __name__ == '__main__':
     curses.update_lines_cols()
