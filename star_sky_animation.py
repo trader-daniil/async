@@ -4,6 +4,7 @@ import time
 import random
 from itertools import cycle
 from more_itertools import chunked
+import os
 
 
 STARS = '*+.:'
@@ -189,18 +190,20 @@ def draw(canvas):
     """
 
     canvas_row, canvas_column = canvas.getmaxyx()
+
+    rockets = []
+    for scheme in os.listdir('rocket_scheme'):
+        with open(f'rocket_scheme/{scheme}') as rocket_scheme:
+            rockets.append(rocket_scheme.read())
     
-    with open('rocket_frame_1.txt') as f:
-        rocket_1 = f.read()
-    with open('rocket_frame_2.txt') as f:
-        rocket_2 = f.read()
+    
 
     spaceship = animate_spaceship(
         canvas=canvas,
         row=canvas_row//2,
         column=canvas_column//2,
-        rocket_1=rocket_1,
-        rocket_2=rocket_2,
+        rocket_1=rockets[0],
+        rocket_2=rockets[-1],
     )
     
     courutines = []
