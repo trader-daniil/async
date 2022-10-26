@@ -142,6 +142,21 @@ def draw_frame(canvas, start_row, start_column, text, negative=False):
             canvas.addch(row, column, symbol)
 
 
+def animate_shot(canvas, row, column):
+    shot = fire(canvas, start_row=row//2, start_column=column//2, rows_speed=-0.3, columns_speed=0)
+
+    while True:
+        try:
+            shot.send(None)
+            canvas.border()
+            curses.curs_set(False)
+            canvas.refresh()
+            time.sleep(0.05)
+        except StopIteration:
+            break
+    
+
+
 async def animate_spaceship(canvas, row, column, rocket_1, rocket_2):
     """
     Отрисовывает корабль.
@@ -217,20 +232,6 @@ def draw(canvas):
             ),
         )
    
-
-    #shot = fire(canvas, start_row=row//2, start_column=column//2, rows_speed=-0.3, columns_speed=0)
-    # анимация выстрела
-    """
-    while True:
-        try:
-            shot.send(None)
-            canvas.border()
-            curses.curs_set(False)
-            canvas.refresh()
-            time.sleep(0.05)
-        except StopIteration:
-            break
-    """
     # создаем анимацию звезд и корабля
 
     star_queues = list(chunked(courutines, 10))
